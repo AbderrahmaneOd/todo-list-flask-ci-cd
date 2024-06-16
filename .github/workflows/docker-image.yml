@@ -1,0 +1,51 @@
+name: Docker Image CI
+
+env:
+  CONFIG_REPO_NAME: flask-helm-chart
+  
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build-push-image:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag abdeod/todo-list-flask-app:$(date +%s)
+    
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      -
+        name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: abdeod/todo-list-flask-app:$(date +%s)
+
+  Update-Config-Repo:
+    runs-on: ubuntu-latest
+    needs: build-push-image
+    steps:
+      - run: |
+          echo "promoting into dev environment!"
+          git config --global user.email actions@github.com && git config --global user.name GitHub Actions
+          echo "cloning config repo $CONFIG_REPO_NAME"
+          git clone https://oauth2:${{ secrets.CI_TOKEN }}@github.com/${{ github.repository_owner }}/$CONFIG_REPO_NAME.git
+          cd $CONFIG_REPO_NAME
+          echo "checkout main branch"
+          git checkout main
+          echo "Updating Image tag in values.yaml file"
+          sed -i "s,tag:.*,tag:\ ${{ date +%s }}," flask-helm-chart/values.yaml
+          git add . && git commit -m "Updated Image tag to ${{ date +%s }}"
+          git push
