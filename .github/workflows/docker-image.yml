@@ -46,6 +46,6 @@ jobs:
           echo "checkout main branch"
           git checkout main
           echo "Updating Image tag in values.yaml file"
-          sed -i "s,tag:.*,tag:\ ${{ github.sha }}," flask-helm-chart/values.yaml
+          sed -i "s,tag:.*,tag:\ ${{ github.sha }}," ./values.yaml
           git add . && git commit -m "Updated Image tag to ${{ github.sha }}"
           git push
