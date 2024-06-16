@@ -26,12 +26,12 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      -
-        name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          push: true
-          tags: abdeod/todo-list-flask-app:$(date +%s)
+      
+    - name: Build and push
+      uses: docker/build-push-action@v5
+      with:
+        push: true
+        tags: abdeod/todo-list-flask-app:$(date +%s)
 
   Update-Config-Repo:
     runs-on: ubuntu-latest
